@@ -2,61 +2,64 @@ use regex::Regex;
 use std::env;
 use std::fs;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::io::{BufRead, BufReader, BufWriter, Error, Write};
 use std::path::Path;
 
-fn main() {
+fn main() -> Result<(), Error> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
-        panic!("Missing file name.")
+        return Err(Error::other("Filename missing."));
     }
 
     let filename_in = &args[1];
     let filename_out = filename_in.to_owned() + ".temp";
 
     {
-        // let path_in = Path::new(filename_in);
-        let file_in = match File::open(Path::new(filename_in)) {
-            Err(why) => panic!("Couldn't open {}: {}", filename_in, why),
-            Ok(file_in) => file_in,
-        };
+        let file_in = File::open(Path::new(filename_in))?;
+        let file_out = File::create(Path::new(&filename_out))?;
 
-        let file_out = match File::create(Path::new(&filename_out)) {
-            Err(why) => panic!("Couldn't create {}: {}", filename_out, why),
-            Ok(file_out) => file_out,
+        // ^EXCLUDE_OBJECT_START NAME='     Start delimiter
+        // (                    Optional
+        //   (?<first>\d+)          First number part with at least one digit
+        //   (                      Optional
+        //     p|P                      'p' or 'P'
+        //     (?<second>\d+)           Second number part with at least one digit
+        //   )?
+        // )?
+        let Ok(re) =
+            Regex::new(r"^EXCLUDE_OBJECT_START NAME='((?<first>\d+)(p|P(?<second>\d+))?)?")
+        else {
+            return Err(Error::other("Invalid regex."));
         };
-
-        let re = Regex::new(r"^EXCLUDE_OBJECT_START NAME='((?<first>\d+)(p|P(?<second>\d+))?)?")
-            .unwrap();
 
         let reader = BufReader::new(file_in);
         let mut writer = BufWriter::new(file_out);
 
         for line in reader.lines() {
-            let line = line.unwrap();
+            let line = line?;
 
-            writeln!(writer, "{}", line).unwrap();
+            writeln!(writer, "{}", line)?;
 
             let Some(captures) = re.captures(&line) else {
                 continue;
             };
 
             let Some(first) = captures.name("first") else {
-                writeln!(writer, "M221 S100").unwrap();
+                writeln!(writer, "M221 S100")?;
                 continue;
             };
-
-            let first = first.as_str();
 
             let second = match captures.name("second") {
                 Some(second) => ".".to_owned() + second.as_str(),
                 None => "".to_owned(),
             };
 
-            writeln!(writer, "M221 S{}{}", first, second).unwrap();
+            writeln!(writer, "M221 S{}{}", first.as_str(), second)?;
         }
     }
 
-    fs::rename(filename_out, filename_in).unwrap();
+    fs::rename(filename_out, filename_in)?;
+
+    Ok(())
 }
