@@ -31,13 +31,17 @@ fn main() -> Result<(), Error> {
         // (                    Optional
         //   (?<first>\d+)          First number part with at least one digit
         //   (                      Optional
-        //     p|P                      'p' or 'P'
+        //     (
+        //       (p|P)                  ('p' or 'P')
+        //       |                      or
+        //       (?<modi>m|M)           ('m' or 'M')
+        //     )
         //     (?<second>\d+)           Second number part with at least one digit
         //   )?
         // )?
-        let Ok(re) =
-            Regex::new(r"^EXCLUDE_OBJECT_START NAME='((?<first>\d+)(p|P(?<second>\d+))?)?")
-        else {
+        let Ok(re) = Regex::new(
+            r"^EXCLUDE_OBJECT_START NAME='((?<first>\d+)(((p|P)|(?<modi>m|M))(?<second>\d+))?)?",
+        ) else {
             return Err(Error::other("Invalid regex."));
         };
 
@@ -81,6 +85,22 @@ fn main() -> Result<(), Error> {
 
             let number = format!("{}.{}", first.as_str(), second);
             let mut number: f64 = number.parse().unwrap();
+
+            match captures.name("modi") {
+                Some(_modifier) => {
+                    number = (1000000.0 * 100.0 * number / original_multiplier).round() / 1000000.0;
+                    writeln!(
+                        writer,
+                        "; prusaslicer_m221_per_object: Replace flow rate by extrusion multiplier",
+                    )?;
+                }
+                None => {
+                    writeln!(
+                        writer,
+                        "; prusaslicer_m221_per_object: Replace flow rate by explicit setting",
+                    )?;
+                }
+            };
 
             writeln!(writer, "M221 S{}", number)?;
         }
