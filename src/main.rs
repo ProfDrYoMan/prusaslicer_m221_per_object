@@ -87,7 +87,7 @@ fn main() -> Result<(), Error> {
                 None => "0",
             };
 
-            // Build a number of first and second part or use 100% as sanity
+            // Build a number of the first and second part or use 100% as sanity
             // (should never happen)
             let number = format!("{}.{}", first.as_str(), second);
             let mut number: f64 = number.parse().unwrap_or(1.0);
