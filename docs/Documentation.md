@@ -47,7 +47,7 @@ It is named 'FlowRate.3mf'.
 
 ## Build
 
-* Clone repository.
+* Clone this repository.
 * [Install](https://www.rust-lang.org/tools/install) a rust toolchain.
 * Run `cargo build --release`
 * The executable is in the target/release directory.
