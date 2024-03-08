@@ -6,6 +6,14 @@ use std::io::{BufRead, BufReader, BufWriter, Error, Write};
 use std::path::Path;
 
 fn main() -> Result<(), Error> {
+    let Ok(original_multiplier) = env::var("SLIC3R_EXTRUSION_MULTIPLIER") else {
+        return Err(Error::other("SLIC3R_EXTRUSION_MULTIPLIER not set."));
+    };
+
+    let Ok(original_multiplier): Result<f64, _> = original_multiplier.parse() else {
+        return Err(Error::other("SLIC3R_EXTRUSION_MULTIPLIER is not a number."));
+    };
+
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
@@ -36,6 +44,16 @@ fn main() -> Result<(), Error> {
         let reader = BufReader::new(file_in);
         let mut writer = BufWriter::new(file_out);
 
+        writeln!(
+            writer,
+            concat!(
+                "; Post-processed by prusaslicer_m221_per_object\n",
+                "; https://github.com/ProfDrYoMan/prusaslicer_m221_per_object\n",
+                "; Original extrusion multiplier: {}\n"
+            ),
+            original_multiplier
+        )?;
+
         for line in reader.lines() {
             let line = line?;
 
@@ -46,16 +64,25 @@ fn main() -> Result<(), Error> {
             };
 
             let Some(first) = captures.name("first") else {
-                writeln!(writer, "M221 S100")?;
+                writeln!(
+                    writer,
+                    concat!(
+                        "; prusaslicer_m221_per_object: Keep default flow rate\n",
+                        "M221 S100"
+                    )
+                )?;
                 continue;
             };
 
             let second = match captures.name("second") {
-                Some(second) => ".".to_owned() + second.as_str(),
-                None => "".to_owned(),
+                Some(second) => second.as_str(),
+                None => "0",
             };
 
-            writeln!(writer, "M221 S{}{}", first.as_str(), second)?;
+            let number = format!("{}.{}", first.as_str(), second);
+            let mut number: f64 = number.parse().unwrap();
+
+            writeln!(writer, "M221 S{}", number)?;
         }
     }
 
