@@ -2,7 +2,7 @@
 
 **My "first" rust project. Bear with me!**
 
-This is a very simple g-code post-processor for Prusa Slicer which enables you to change the flow rate per object.
+This is a very simple g-code post-processor for Prusa Slicer which enables you to change the flow rate or the extrusion multiplier per object.
 
 ## Why this exists?
 
