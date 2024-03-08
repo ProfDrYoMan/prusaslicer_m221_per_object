@@ -2,26 +2,18 @@
 
 **My "first" rust project. Bear with me!**
 
-This is a very simple g-code post-processor which enables you to change the flow rate per object.
+This is a very simple g-code post-processor for Prusa Slicer which enables you to change the flow rate per object.
 
-It adds `M221 S[flow rate]` after each object start.
+## Why this exists?
 
-`[flow rate]` is parsed from the start of the object name.
+I was looking for a calibration solution working with Prusa Slicer.
+I found out that there was no way to set an extrusion multiplier per object name or any other way to achieve what I wanted.
 
-If the flow rate includes a decimal point you need to replace it by `p` or `P` in the object name.
+Searching the web I found this [posting](https://forum.prusa3d.com/forum/prusaslicer/change-flow-rate-extrusion-multiplier-between-objects/) but nothing else.
+No solution but only the hint that there is no option in Prusa Slicer but with an exteral g-code post-processor.
 
-Parsing ends when either no `p` or `P` is found or after the last digit found. This allows you to still add an object name after the flow rate which is ignore by this script
+So I finally got to enhance my rust learning experience. :)
 
-If no valid flow rate is found the object will be printed with flow rate 100%.
+## Documentation
 
-## Slicer Configuration
-
-### Print Settings - Output Options
-
-#### Label Objects
-
-![Label Objects](./doc/label_objects.png)
-
-#### Post Processing Script
-
-![Post Processing Script](./doc/post_processing_script.png)
+Check [here](docs/Documentation.md).
