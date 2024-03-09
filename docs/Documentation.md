@@ -59,7 +59,7 @@ Figure: Post Processing Scripts
 ## Manual Option
 
 Searching for a solition I also ran over [this Prusa Slicer issue comment](https://github.com/prusa3d/PrusaSlicer/issues/7200#issuecomment-1986715836).
-@arshish1612 shows a solution which is manual but very flexible.
+User [@arshish1612](https://github.com/arshish1612) shows a solution which is manual but very flexible.
 
 ### Print Settings - Output Options - Other
 
